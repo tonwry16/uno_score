@@ -2,7 +2,10 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" 
+      content="width=device-width, initial-scale=1.0,
+               maximum-scale=1.0, user-scalable=no,
+               shrink-to-fit=no" />
   <!-- Адаптация под мобильные экраны -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UNO Счётчик</title>
@@ -503,15 +506,9 @@
     }
   </script>
   <script>
-  let lastTouchEnd = 0;
-  document.addEventListener('touchend', function (event) {
-    const now = Date.now();
-    // Если разница между двумя touchend слишком мала
-    if (now - lastTouchEnd <= 300) {
-      event.preventDefault(); // не даём браузеру зумить
-    }
-    lastTouchEnd = now;
-  }, false);
+document.addEventListener('gesturestart', function(e) {
+  e.preventDefault();
+});
 </script>
 </body>
 </html>
