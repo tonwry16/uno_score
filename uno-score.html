@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Адаптация под мобильные экраны -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNO Счётчик</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 10px;
+      margin: 0; 
+      background-color: #f1f1f1;
+    }
+    h1 {
+      margin: 15px 0;
+    }
+
+    /* Блок для кнопок настроек (выбор лимита, сброс) */
+    #controls {
+      margin: 10px 0 20px 0;
+    }
+    #controls button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background-color: #2196f3;
+      color: #fff;
+    }
+    #controls button:hover {
+      background-color: #0b7dda;
+    }
+    #game-limit {
+      font-weight: bold;
+    }
+
+    /* Игроки - адаптивные карточки */
+    .player-container {
+      display: flex;
+      flex-wrap: wrap; 
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .player {
+      flex: 1 1 200px; 
+      min-width: 160px;
+      max-width: 250px;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      margin: 0 auto;
+    }
+    .player-name {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+    .score {
+      font-size: 1.4em;
+      margin: 8px 0;
+    }
+    .player button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      font-size: 1.2em;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background-color: #4caf50;
+      color: #fff;
+    }
+    .player button:hover {
+      background-color: #45a049;
+    }
+
+    /* Треугольник с дилером/ходом */
+    #dealer-triangle {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      margin: 0 auto 20px auto; /* автоотступ для центрирования */
+    }
+    .triangle-number {
+      position: absolute;
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    /* 1 - сверху по центру */
+    #p1 {
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    /* 2 - снизу слева */
+    #p2 {
+      bottom: 0;
+      left: 0;
+    }
+    /* 3 - снизу справа */
+    #p3 {
+      bottom: 0;
+      right: 0;
+    }
+
+    /* Стрелка в центре, будем крутить rotate() */
+    #triangle-arrow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      cursor: pointer;
+      user-select: none; /* чтобы не выделялся текст при клике */
+    }
+    #triangle-arrow:hover {
+      color: #e91e63;
+    }
+
+    /* Цифровая клавиатура внизу экрана */
+    #number-pad {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      padding: 10px;
+      border-top: 2px solid #ccc;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Заголовок "Добавляем очки для..." */
+    #pad-header {
+      margin-bottom: 8px; 
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+    /* Отдельно покажем текущий счёт */
+    #current-player-score {
+      margin-bottom: 8px;
+      font-size: 1.1em;
+      color: #333;
+    }
+
+    /* Сетка кнопок */
+    .num-pad-row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 5px;
+    }
+    .num-btn {
+      flex: 1 1 auto;
+      margin: 5px;
+      padding: 15px 0;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 4px;
+      background-color: #e0e0e0;
+      color: #000;
+      cursor: pointer;
+    }
+    .num-btn:hover {
+      background-color: #d0d0d0;
+    }
+    .num-btn:active {
+      background-color: #bbb;
+    }
+
+    /* Кастомный ввод числа */
+    #custom-input {
+      margin: 10px 0;
+    }
+    #custom-score-input {
+      width: 80px;
+      text-align: center;
+      font-size: 1.1em;
+    }
+    .add-btn {
+      margin-left: 5px;
+      padding: 8px 12px;
+      font-size: 1em;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background-color: #ff9800;
+      color: #fff;
+    }
+    .add-btn:hover {
+      background-color: #e68a00;
+    }
+
+    /* Кнопки внизу (Закрыть, Отмена последнего) */
+    #action-buttons {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .action-btn {
+      flex: 1 1 auto;
+      padding: 10px;
+      font-size: 1.2em;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background-color: #f44336;
+      color: #fff;
+    }
+    .action-btn:hover {
+      background-color: #da2c1a;
+    }
+
+    /* Конфетти при победе */
+    .celebration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+      display: none;
+    }
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: red;
+      animation: fall 2s linear infinite;
+    }
+    @keyframes fall {
+      0% {
+        transform: translateY(-100%);
+      }
+      100% {
+        transform: translateY(100vh);
+      }
+    }
+    /* Сообщение о победе */
+    #victory-message {
+      position: fixed;
+      top: 40%;
+      left: 0;
+      right: 0;
+      font-size: 2em;
+      background: rgba(255,255,255,0.8);
+      display: none;
+      padding: 20px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>UNO Счётчик</h1>
+
+  <!-- Блок выбора лимита и сброса -->
+  <div id="controls">
+    <span>До скольки играем?</span>
+    <button onclick="setGameLimit(200)">200</button>
+    <button onclick="setGameLimit(500)">500</button>
+    <p>Выбранный лимит: <span id="game-limit">—</span></p>
+    <button onclick="resetScores()">Обнулить счёт</button>
+  </div>
+
+  <!-- Карточки игроков -->
+  <div class="player-container">
+    <div class="player">
+      <div class="player-name">Толя</div>
+      <div class="score" id="score-tolya">0</div>
+      <button onclick="openNumberPad('tolya')">Добавить очки</button>
+    </div>
+    <div class="player">
+      <div class="player-name">Юля</div>
+      <div class="score" id="score-yulia">0</div>
+      <button onclick="openNumberPad('yulia')">Добавить очки</button>
+    </div>
+    <div class="player">
+      <div class="player-name">Даня</div>
+      <div class="score" id="score-danya">0</div>
+      <button onclick="openNumberPad('danya')">Добавить очки</button>
+    </div>
+  </div>
+
+  <!-- Треугольник с 1,2,3 и стрелкой -->
+  <div id="dealer-triangle">
+    <div id="p1" class="triangle-number">1</div>
+    <div id="p2" class="triangle-number">2</div>
+    <div id="p3" class="triangle-number">3</div>
+    <!-- Стрелка, меняет угол при клике -->
+    <div id="triangle-arrow" onclick="rotateDealerArrow()">↑</div>
+  </div>
+
+  <!-- Всплывающая панель набора очков -->
+  <div id="number-pad">
+    <div id="pad-header"></div>
+    <!-- Дублируем счёт текущего игрока -->
+    <div id="current-player-score"></div>
+
+    <div class="num-pad-row">
+      <button class="num-btn" onclick="addPointsToCurrent(1)">1</button>
+      <button class="num-btn" onclick="addPointsToCurrent(2)">2</button>
+      <button class="num-btn" onclick="addPointsToCurrent(3)">3</button>
+    </div>
+    <div class="num-pad-row">
+      <button class="num-btn" onclick="addPointsToCurrent(4)">4</button>
+      <button class="num-btn" onclick="addPointsToCurrent(5)">5</button>
+      <button class="num-btn" onclick="addPointsToCurrent(6)">6</button>
+    </div>
+    <div class="num-pad-row">
+      <button class="num-btn" onclick="addPointsToCurrent(7)">7</button>
+      <button class="num-btn" onclick="addPointsToCurrent(8)">8</button>
+      <button class="num-btn" onclick="addPointsToCurrent(9)">9</button>
+    </div>
+    <div class="num-pad-row">
+      <button class="num-btn" onclick="addPointsToCurrent(20)">+20</button>
+      <button class="num-btn" onclick="addPointsToCurrent(50)">+50</button>
+    </div>
+
+    <!-- Кастомный ввод числа -->
+    <div id="custom-input">
+      <span>Ввести вручную:</span>
+      <input id="custom-score-input" type="number" min="0">
+      <button class="add-btn" onclick="addCustomPoints()">Добавить</button>
+    </div>
+
+    <div id="action-buttons">
+      <button class="action-btn" onclick="undoLast()">Отмена последнего</button>
+      <button class="action-btn" onclick="closeNumberPad()">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- «Салют» -->
+  <div class="celebration" id="celebration"></div>
+  <!-- Сообщение о победе -->
+  <div id="victory-message"></div>
+
+  <script>
+    let gameLimit = null;
+    // Текущий игрок, для которого открыта клавиатура
+    let currentPlayer = null;
+
+    // Счёт
+    let scores = {
+      tolya: 0,
+      yulia: 0,
+      danya: 0
+    };
+
+    // История добавлений (чтобы откатить последнее действие)
+    let history = {
+      tolya: [],
+      yulia: [],
+      danya: []
+    };
+
+    /*******************************************************
+     *  1. ЛИМИТ, СБРОС, ОТОБРАЖЕНИЕ
+     *******************************************************/
+    function setGameLimit(limit) {
+      gameLimit = limit;
+      document.getElementById("game-limit").textContent = limit;
+      checkForVictory();
+    }
+
+    function resetScores() {
+      scores.tolya = 0;
+      scores.yulia = 0;
+      scores.danya = 0;
+      history.tolya = [];
+      history.yulia = [];
+      history.danya = [];
+      updateScoreDisplay();
+    }
+
+    function updateScoreDisplay() {
+      document.getElementById("score-tolya").textContent = scores.tolya;
+      document.getElementById("score-yulia").textContent = scores.yulia;
+      document.getElementById("score-danya").textContent = scores.danya;
+    }
+
+    function checkForVictory() {
+      if (!gameLimit) return;
+      for (let p in scores) {
+        if (scores[p] >= gameLimit) {
+          showVictory(p);
+          break;
+        }
+      }
+    }
+
+    function showVictory(player) {
+      startConfetti();
+      const msg = document.getElementById("victory-message");
+      msg.innerText = "Победа за " + player.toUpperCase() + "!";
+      msg.style.display = "block";
+    }
+
+    /*******************************************************
+     *  2. ОТКРЫТИЕ / ЗАКРЫТИЕ КЛАВИАТУРЫ
+     *******************************************************/
+    function openNumberPad(player) {
+      currentPlayer = player;
+      document.getElementById("pad-header").textContent = "Добавляем очки: " + player;
+      // Показать текущий счёт игрока
+      document.getElementById("current-player-score").textContent = "Текущий счёт: " + scores[player];
+      document.getElementById("number-pad").style.display = "block";
+    }
+
+    function closeNumberPad() {
+      currentPlayer = null;
+      document.getElementById("number-pad").style.display = "none";
+    }
+
+    /*******************************************************
+     *  3. ДОБАВЛЕНИЕ ОЧКОВ
+     *******************************************************/
+    function addPointsToCurrent(amount) {
+      if (!currentPlayer) return;
+      scores[currentPlayer] += amount;
+      history[currentPlayer].push(amount);
+      updateScoreDisplay();
+      // Обновим дублирующий счёт
+      document.getElementById("current-player-score").textContent = "Текущий счёт: " + scores[currentPlayer];
+      checkForVictory();
+    }
+
+    function addCustomPoints() {
+      if (!currentPlayer) return;
+      const inputVal = parseInt(document.getElementById("custom-score-input").value);
+      if (!isNaN(inputVal) && inputVal > 0) {
+        scores[currentPlayer] += inputVal;
+        history[currentPlayer].push(inputVal);
+        updateScoreDisplay();
+        document.getElementById("current-player-score").textContent = "Текущий счёт: " + scores[currentPlayer];
+        checkForVictory();
+      }
+      document.getElementById("custom-score-input").value = "";
+    }
+
+    /*******************************************************
+     *  4. ОТКАТ ПОСЛЕДНЕГО ДОБАВЛЕНИЯ
+     *******************************************************/
+    function undoLast() {
+      if (!currentPlayer) return;
+      const arr = history[currentPlayer];
+      if (arr.length > 0) {
+        const lastAmount = arr.pop();
+        scores[currentPlayer] -= lastAmount;
+        if (scores[currentPlayer] < 0) {
+          scores[currentPlayer] = 0; 
+        }
+        updateScoreDisplay();
+        document.getElementById("current-player-score").textContent = "Текущий счёт: " + scores[currentPlayer];
+      }
+    }
+
+    /*******************************************************
+     *  5. "ТРЕУГОЛЬНИК" С 1,2,3 И ПОВОРАЧИВАЮЩЕЙСЯ СТРЕЛКОЙ
+     *******************************************************/
+    let currentDealerIndex = 0;
+    // Зададим углы поворота стрелки для трёх позиций (1,2,3)
+    // Примерно: 0° (вверх), 120°, 240°.
+    // При клике будет циклически двигать угол.
+    const arrowAngles = [0, 240, 120];
+
+    function rotateDealerArrow() {
+      currentDealerIndex = (currentDealerIndex + 1) % 3; 
+      const angle = arrowAngles[currentDealerIndex];
+      const arrowEl = document.getElementById("triangle-arrow");
+      // Сдвиг обратно на центр (translate), потом вращаем
+      arrowEl.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+    }
+
+    /*******************************************************
+     *  6. ПСЕВДО-САЛЮТ (КОНФЕТТИ)
+     *******************************************************/
+    function startConfetti() {
+      const celebration = document.getElementById("celebration");
+      celebration.style.display = "block";
+
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement("div");
+        confetti.classList.add("confetti");
+        confetti.style.left = Math.random() * 100 + "%";
+        confetti.style.backgroundColor = getRandomColor();
+        confetti.style.animationDuration = 2 + Math.random() * 2 + "s";
+        celebration.appendChild(confetti);
+      }
+    }
+
+    function getRandomColor() {
+      const colors = ["red", "blue", "green", "yellow", "orange", "pink", "purple"];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+  </script>
+</body>
+</html>
