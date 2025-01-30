@@ -502,5 +502,16 @@
       return colors[Math.floor(Math.random() * colors.length)];
     }
   </script>
+  <script>
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function (event) {
+    const now = Date.now();
+    // Если разница между двумя touchend слишком мала
+    if (now - lastTouchEnd <= 300) {
+      event.preventDefault(); // не даём браузеру зумить
+    }
+    lastTouchEnd = now;
+  }, false);
+</script>
 </body>
 </html>
